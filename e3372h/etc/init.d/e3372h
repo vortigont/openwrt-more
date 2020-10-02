@@ -1,0 +1,35 @@
+#!/bin/sh /etc/rc.common
+
+# Autostart script for Huawei E3372h in CDC_NCM mode
+# detects if modem is available at boot time and brings's up corresponding wwan interface
+# https://4pda.ru/forum/index.php?showtopic=582284&view=findpost&p=100309827
+# Pls, report issues at https://github.com/vortigont/openwrt-more/
+
+START=85
+STOP=90
+
+. /lib/functions.sh
+. /lib/netifd/netifd-proto.sh
+
+find_wwan_iface() {
+	local cfg="$1"
+	local proto
+	config_get proto "$cfg" proto
+	[ "$proto" = ncm ] || return 0
+	proto_set_available "$cfg" 1
+	logger -t DEBUG "Enabling interface $cfg"
+	ifup $cfg
+	exit 0
+}
+
+
+start() {
+    # detect modem in CDC_NCM mode
+    grep 12d1 /sys/kernel/debug/usb/devices | grep -q 155e || exit 0
+    logger -t DEBUG "Found Huawei E3372 in CDC_NCM mode"
+    config_load network
+    config_foreach find_wwan_iface interface
+}
+
+#stop() {
+#}
