@@ -1,0 +1,57 @@
+#!/bin/sh
+
+# TTL adjust script
+# could be used to change ttl value in the outbound ip packets for any specific interface
+# https://4pda.ru/forum/index.php?showtopic=582284&view=findpost&p=100309827
+# Pls, report issues at https://github.com/vortigont/openwrt-more/
+
+# To activate, pls set configuration option 'ttlfix' for any required interface,
+# usualy it should be an interface facing 3G/LTE modem interface, like cdc_ncm
+# Valid values are:
+# '0' or no set - do not change anything
+# '1' - set TTL to the kernel default value (default is 64 for Linux)
+# '128' - or any other integer sets TTL to this specific value
+#
+# i.e. change in file /etc/config/network
+# config interface 'LTE'
+# option ttlfix '1'
+
+[ "$ACTION" = "ifup" ] || [ "$ACTION" = "ifdown" ] || exit 0
+
+. /lib/functions.sh
+. /lib/functions/network.sh
+
+fix_ttl() {
+	local cfg="$1"
+	#cfg="$INTERFACE"
+	local ttl
+	local netdev
+
+	config_get ttl "$cfg" ttlfix
+
+	[ -z "$ttl" ] || [ "$ttl" = 0 ] && exit 0
+
+	if [ $(lsmod | grep -c xt_HL) == 0 ] ; then
+		logger -t TTLFIX "Pls, install iptables-mod-ipopt package for this script to work"
+		exit 0
+	fi
+
+	network_get_device netdev "$cfg"
+
+	if [ "$ttl" = 1 ]; then
+		ttl=`cat /proc/sys/net/ipv4/ip_default_ttl`
+	fi
+
+	if [ "$ACTION" = "ifup" ]; then
+		logger -t TTLFIX "Overriding outgoing IP TTL for $netdev to $ttl"
+		iptables -t mangle -A POSTROUTING -o $netdev  -j TTL --ttl-set $ttl
+	else
+		iptables -t mangle -D POSTROUTING -o $netdev  -j TTL --ttl-set $ttl
+	fi
+
+}
+
+
+config_load network
+
+fix_ttl $INTERFACE
