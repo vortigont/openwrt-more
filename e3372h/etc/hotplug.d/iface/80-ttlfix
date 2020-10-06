@@ -23,7 +23,6 @@
 
 fix_ttl() {
 	local cfg="$1"
-	#cfg="$INTERFACE"
 	local ttl
 	local netdev
 
@@ -39,14 +38,20 @@ fix_ttl() {
 	network_get_device netdev "$cfg"
 
 	if [ "$ttl" = 1 ]; then
-		ttl=`cat /proc/sys/net/ipv4/ip_default_ttl`
+		ttl=$(cat /proc/sys/net/ipv4/ip_default_ttl)
 	fi
 
 	if [ "$ACTION" = "ifup" ]; then
 		logger -t TTLFIX "Overriding outgoing IP TTL for $netdev to $ttl"
 		iptables -t mangle -A POSTROUTING -o $netdev  -j TTL --ttl-set $ttl
+		# Some dirty hacks that should not be used ever unless looking for troubles
+		# iptables -t mangle -A PREROUTING -i $netdev -j TTL --ttl-set 42
+		# ip6tables -t mangle -A PREROUTING -i $netdev -m hl --hl 1 -j HL --hl-inc 1
 	else
 		iptables -t mangle -D POSTROUTING -o $netdev  -j TTL --ttl-set $ttl
+		# Some dirty hacks that should not be used ever unless looking for troubles
+		# iptables -t mangle -D PREROUTING -i $netdev -j TTL --ttl-set 42
+		# ip6tables -t mangle -D PREROUTING -i $netdev -m hl --hl 1 -j HL --hl-inc 1
 	fi
 
 }
