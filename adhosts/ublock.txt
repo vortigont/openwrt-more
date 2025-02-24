@@ -1,0 +1,2 @@
+# cutom rules for uBlock
+||lentaru.media.eagleplatform.com/index/player
