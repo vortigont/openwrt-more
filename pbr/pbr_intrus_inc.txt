@@ -1,2 +1,0 @@
-# domains that are limiting access from outside of Russia (inclusion list)
-rutube.ru

@@ -1,0 +1,2 @@
+# exclude list for domains from outside of Russia
+# сюда помещаю домены который присутствуют в чужих списках, но мне там не нужны

@@ -1,0 +1,5 @@
+# domains that are limiting access from outside of Russia (inclusion list)
+# здесь домены отсутствующие в других списках, но нужные мне
+
+# рутуб режет скорость и выводит надоедливое сообщение для адресов не из России
+rutube.ru

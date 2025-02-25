@@ -1,0 +1,2 @@
+# domains outside of Russia (inclusion list)
+# здесь домены отсутствующие в других списках, но нужные мне

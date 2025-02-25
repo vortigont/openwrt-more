@@ -1,0 +1,7 @@
+# exclude list for domains that are limiting access from outside of Russia
+# сюда помещаю домены который присутствуют в чужих списках, но мне там не нужны
+counter.yadro.ru
+showip.net
+yandex.net
+# уже есть gov.ru
+fssp.gov.ru
