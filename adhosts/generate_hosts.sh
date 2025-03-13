@@ -17,7 +17,7 @@ curl -s https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts > ${tmp
 #make sure '127.0.0.1 localhost' be the first line in hosts (may affect android)
 cat <<EOF >  ${dst}/hosts
 # a combined hosts lists including default localhost entries
-
+#
 127.0.0.1 localhost
 127.0.0.1 localhost.localdomain
 ::1 localhost
@@ -28,7 +28,7 @@ ff00::0 ip6-mcastprefix
 ff02::1 ip6-allnodes
 ff02::2 ip6-allrouters
 ff02::3 ip6-allhosts
-
+#
 ## Adv hosts
 EOF
 
@@ -40,17 +40,17 @@ echo "combine all hosts and remove all whitelisted items"
 cat  ${src}/hosts.* ${tmpdir}/hosts.StevenBlack | grep -vE '^#|^$' | tr -d '\15\32' | sort -u -k 2 | grep -vwF -f ${tmpdir}/whitelist.my > $tmpdir/hosts.combined
 
 # save default items to a temp
-awk '{print $2}'  ${dst}/hosts > $tmpdir/hosts.default
+#awk '{print $2}'  ${dst}/hosts > $tmpdir/hosts.default
 
 # create two files:
 #  ${dst}/hosts - a combined file with default items
 #  ${dst}/hosts.adv - just adv items
 echo "make combined lists"
 echo "#all sorts of adv hosts combined, excluding default localhost entries" >  ${dst}/hosts.adv
-# amke a filter for default entries
-grep -vE '^#|^$' $tmpdir/hosts.default | awk '{print $2}' > $tmpdir/hosts.def_pattern
+# make a filter for default entries
+grep -vE '^#|^$' ${dst}/hosts | awk '{print $2}' > $tmpdir/hosts.def_pattern
 grep -vwF -f $tmpdir/hosts.def_pattern $tmpdir/hosts.combined | tee -a  ${dst}/hosts >>  ${dst}/hosts.adv
-rm $tmpdir/hosts.default $tmpdir/hosts.combined $tmpdir/hosts.def_pattern
+rm  $tmpdir/hosts.combined $tmpdir/hosts.def_pattern
 
 # create windows compatible hosts
 awk 'sub("$", "\r")'  ${dst}/hosts >  ${dst}/hosts.win
