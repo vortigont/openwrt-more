@@ -8,3 +8,5 @@ alfabank.ru
 # wink
 iptv.rt.ru
 cdn.ngenix.net
+
+commim.spb.ru
