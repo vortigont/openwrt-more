@@ -3,10 +3,11 @@
 
 # рутуб режет скорость и выводит надоедливое сообщение для адресов не из России
 rutube.ru
+rutubelist.ru
 alfabank.ru
 
 # wink
 iptv.rt.ru
 cdn.ngenix.net
 
-commim.spb.ru
+spb.ru
