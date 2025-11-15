@@ -1,4 +1,5 @@
 # Domains to completely block name resolution
+# source picks https://github.com/hagezi/dns-blocklists/
 
 #Google
 google-analytics.com
