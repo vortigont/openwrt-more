@@ -15,6 +15,7 @@ intrus_include='intrus_domains_inc.txt'
 intrus_exclude='intrus_domains_exc.txt'
 extrus_include='extrus_domains_inc.txt'
 extrus_exclude='extrus_domains_exc.txt'
+extrus_rt='extrus_domains_rt.txt'
 
 pbr_table_intrus='pbr-intrus'
 pbr_table_extrus='pbr-extrus'
@@ -36,6 +37,12 @@ check_md5() {
     return 1
 }
 
+update_file() {
+    local src_file="$1"
+    if ! check_md5 ${tmpdir}/$src_file ${dst}/$src_file; then
+	mv ${tmpdir}/$src_file ${dst}/
+    fi
+}
 
 curl -s ${itdoginfo_intrus} --output ${tmpdir}/intrus_raw
 curl -s ${itdoginfo_extrus} --output ${tmpdir}/extrus_raw
@@ -47,6 +54,8 @@ grep -vE '^#|^$' ${intrus_exclude} > ${tmpdir}/intrus_exclude
 grep -vE '^#|^$' ${extrus_exclude} > ${tmpdir}/extrus_exclude
 grep -vwF -f ${tmpdir}/intrus_exclude ${tmpdir}/intrus_raw | sort -u > ${tmpdir}/intrus_result
 grep -vwF -f ${tmpdir}/extrus_exclude ${tmpdir}/extrus_raw | sort -u > ${tmpdir}/extrus_result
+# RT special
+grep -vE '^#|^$' ${extrus_rt} > ${tmpdir}/${extrus_rt}
 
 # generate dnsmasq conf files for intrus list
 ## IFS will remove all leading/trailing spaces!!!
@@ -58,13 +67,8 @@ do
   echo "ipset=/${line}/${pbr_table_intrus}" >> ${tmpdir}/intrus_ipset_dnsmasq.conf
 done < "${tmpdir}/intrus_result"
 
-if ! check_md5 ${tmpdir}/intrus_nft_dnsmasq.conf ${dst}/intrus_nft_dnsmasq.conf; then
-    mv ${tmpdir}/intrus_nft_dnsmasq.conf ${dst}/intrus_nft_dnsmasq.conf
-fi
-
-if ! check_md5 ${tmpdir}/intrus_ipset_dnsmasq.conf ${dst}/intrus_ipset_dnsmasq.conf; then
-    mv ${tmpdir}/intrus_ipset_dnsmasq.conf ${dst}/intrus_ipset_dnsmasq.conf
-fi
+update_file "intrus_nft_dnsmasq.conf"
+update_file "intrus_ipset_dnsmasq.conf"
 
 # generate dnsmasq conf files for extrus list
 ## IFS will remove all leading/trailing spaces!!!
@@ -76,21 +80,22 @@ do
   echo "ipset=/${line}/${pbr_table_extrus}" >> ${tmpdir}/extrus_ipset_dnsmasq.conf
 done < "${tmpdir}/extrus_result"
 
-if ! check_md5 ${tmpdir}/extrus_nft_dnsmasq.conf ${dst}/extrus_nft_dnsmasq.conf; then
-    mv ${tmpdir}/extrus_nft_dnsmasq.conf ${dst}/extrus_nft_dnsmasq.conf
-fi
+update_file "extrus_nft_dnsmasq.conf"
+update_file "extrus_ipset_dnsmasq.conf"
 
-if ! check_md5 ${tmpdir}/extrus_ipset_dnsmasq.conf ${dst}/extrus_ipset_dnsmasq.conf; then
-    mv ${tmpdir}/extrus_ipset_dnsmasq.conf ${dst}/extrus_ipset_dnsmasq.conf
-fi
+
+# generate dnsmasq conf files for extrus RT list
+while IFS= read -r line
+do
+  # generate nft list
+  echo "nftset=/${line}/4#inet#fw4#${pbr_table_extrus}" >> ${tmpdir}/extrus_rt_nft_dnsmasq.conf
+  # generate ipset list
+  echo "ipset=/${line}/${pbr_table_extrus}" >> ${tmpdir}/extrus_rt_ipset_dnsmasq.conf
+done < "${tmpdir}/${extrus_rt}"
+
+update_file "extrus_rt_nft_dnsmasq.conf"
+update_file "extrus_rt_ipset_dnsmasq.conf"
+
 
 rm ${tmpdir}/intrus_*
 rm ${tmpdir}/extrus_*
-
-#domains=`cat ${tmpdir}/intrus_raw | tr -s "\n" "/"`
-#mydomains=`cat my_intrus_inc.txt | tr -s "\n" "/"`
-
-#echo "nftset=/${mydomains}/4#inet#fw4#${pbr_table_intrus}" >> ${dst}/pbr_intrus_dnsmasq.conf
-
-
-

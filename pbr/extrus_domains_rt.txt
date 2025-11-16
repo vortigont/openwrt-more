@@ -1,0 +1,5 @@
+# exclude list for domains from outside of Russia
+# сюда помещаю домены для RT
+youtu.be
+youtube
+ytimg
