@@ -9,8 +9,10 @@ safebrowsing.google.com
 safebrowsing.googleapis.com
 safebrowsing-cache.google.com
 app-measurement.com
+app-analytics-services.com
 2o7.net
 googletagmanager.com
+firebaselogging-pa.googleapis.com
 
 # Ads and tracking on Xiaomi devices
 mistat.xiaomi.com
