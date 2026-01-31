@@ -3,6 +3,7 @@
 #youtu.be
 #youtube
 #ytimg
+bellingcat.com
 facebook.com
 facebook.net
 fbcdn.net
@@ -37,5 +38,8 @@ ui.ill.in.ua
 ukr.net
 ukr.radio
 unian.ua
+whatsapp.biz
+whatsapp.com
+whatsapp.net
 xvideos-cdn.com
 xvideos.com
