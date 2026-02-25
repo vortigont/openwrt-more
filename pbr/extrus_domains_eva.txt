@@ -1,0 +1,5 @@
+# exclude list for domains from outside of Russia
+# eva
+whatsapp.biz
+whatsapp.com
+whatsapp.net
