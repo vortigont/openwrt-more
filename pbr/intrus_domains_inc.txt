@@ -12,3 +12,4 @@ cdn.ngenix.net
 
 alfabank.ru
 spb.ru
+dns-shop.ru

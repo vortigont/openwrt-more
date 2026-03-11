@@ -16,6 +16,7 @@ intrus_exclude='intrus_domains_exc.txt'
 extrus_include='extrus_domains_inc.txt'
 extrus_exclude='extrus_domains_exc.txt'
 extrus_rt='extrus_domains_rt.txt'
+extrus_eva='extrus_domains_eva.txt'
 
 pbr_table_intrus='pbr-intrus'
 pbr_table_extrus='pbr-extrus'
@@ -56,6 +57,7 @@ grep -vwF -f ${tmpdir}/intrus_exclude ${tmpdir}/intrus_raw | sort -u > ${tmpdir}
 grep -vwF -f ${tmpdir}/extrus_exclude ${tmpdir}/extrus_raw | sort -u > ${tmpdir}/extrus_result
 # RT special
 grep -vE '^#|^$' ${extrus_rt} > ${tmpdir}/${extrus_rt}
+grep -vE '^#|^$' ${extrus_eva} > ${tmpdir}/${extrus_eva}
 
 # generate dnsmasq conf files for intrus list
 ## IFS will remove all leading/trailing spaces!!!
@@ -95,6 +97,19 @@ done < "${tmpdir}/${extrus_rt}"
 
 update_file "extrus_rt_nft_dnsmasq.conf"
 update_file "extrus_rt_ipset_dnsmasq.conf"
+
+
+# generate dnsmasq conf files for extrus eva list
+while IFS= read -r line
+do
+  # generate nft list
+  echo "nftset=/${line}/4#inet#fw4#${pbr_table_extrus}" >> ${tmpdir}/extrus_eva_nft_dnsmasq.conf
+  # generate ipset list
+  echo "ipset=/${line}/${pbr_table_extrus}" >> ${tmpdir}/extrus_eva_ipset_dnsmasq.conf
+done < "${tmpdir}/${extrus_eva}"
+
+update_file "extrus_eva_nft_dnsmasq.conf"
+update_file "extrus_eva_ipset_dnsmasq.conf"
 
 
 rm ${tmpdir}/intrus_*
