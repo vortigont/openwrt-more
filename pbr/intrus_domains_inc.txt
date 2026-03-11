@@ -11,5 +11,6 @@ iptv.rt.ru
 cdn.ngenix.net
 
 alfabank.ru
+avito.ru
 spb.ru
 dns-shop.ru
