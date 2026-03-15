@@ -1,4 +1,19 @@
 # domains outside of Russia (inclusion list)
 # здесь домены отсутствующие в других списках, но нужные мне
 intel.com
+
+# tg - https://github.com/v2ray/domain-list-community/blob/master/data/telegram
 telegram.org
+t.me
+cdn-telegram.org
+tdesktop.com
+telega.one
+telegra.ph
+telegram-cdn.org
+telegram.dog
+telegram.me
+telegram.space
+telesco.pe
+tg.dev
+ton.org
+tx.me
