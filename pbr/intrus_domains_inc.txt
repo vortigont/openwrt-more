@@ -14,3 +14,4 @@ alfabank.ru
 avito.ru
 spb.ru
 dns-shop.ru
+ozon.ru
