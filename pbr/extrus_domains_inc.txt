@@ -17,3 +17,5 @@ telesco.pe
 tg.dev
 ton.org
 tx.me
+rutracker.cc
+t-ru.org
