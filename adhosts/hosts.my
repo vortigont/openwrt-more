@@ -65,6 +65,9 @@
 ::	datamarket.accesscontrol.windows.net
 0.0.0.0	appsee.com
 ::	appsee.com
+#rstor telemetry
+0.0.0.0	reef.vk-cdn.net
+::	reef.vk-cdn.net
 
 
 #Misc
