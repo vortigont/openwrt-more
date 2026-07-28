@@ -1,5 +1,7 @@
 # exclude list for domains from outside of Russia
 # eva
+bip.ai
+bip.com
 whatsapp.biz
 whatsapp.com
 whatsapp.net
