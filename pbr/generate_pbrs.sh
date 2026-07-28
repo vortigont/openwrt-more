@@ -1,22 +1,18 @@
 #!/usr/bin/env bash
 
 # location variables
-tmpdir='/tmp'
+tmpdir='/tmp/pbrs'
 src="./"
 dst="lists"
 
 
 itdoginfo_intrus='https://raw.githubusercontent.com/itdoginfo/allow-domains/refs/heads/main/Russia/outside-raw.lst'
 itdoginfo_extrus='https://raw.githubusercontent.com/itdoginfo/allow-domains/refs/heads/main/Russia/inside-raw.lst'
-#itdoginfo_intrus_ipset='https://raw.githubusercontent.com/itdoginfo/allow-domains/refs/heads/main/Russia/outside-dnsmasq-ipset.lst'
-#itdoginfo_intrus_nft='https://raw.githubusercontent.com/itdoginfo/allow-domains/refs/heads/main/Russia/outside-dnsmasq-nfset.lst'
 
 intrus_include='intrus_domains_inc.txt'
 intrus_exclude='intrus_domains_exc.txt'
 extrus_include='extrus_domains_inc.txt'
 extrus_exclude='extrus_domains_exc.txt'
-extrus_rt='extrus_domains_rt.txt'
-extrus_eva='extrus_domains_eva.txt'
 
 pbr_table_intrus='pbr-intrus'
 pbr_table_extrus='pbr-extrus'
@@ -24,11 +20,12 @@ pbr_table_extrus='pbr-extrus'
 # include local config variables overrides
 [ -r .config ] && source .config
 [ ! -e ${dst} ] && mkdir -p ${dst}
+[ ! -e ${tmpdir} ] && mkdir -p ${tmpdir}
 
 # check md5 sum for two files in arguments, returns 0 is md5 matches, 1 otherwise 
 check_md5() {
-	local f1="$1"
-	local f2="$2"
+    local f1="$1"
+    local f2="$2"
     if [ -r ${f1} ] && [ -r ${f2} ] ; then
         #md5sum ${f1} ${f2}
         if [ "$(md5sum ${f1} | awk {'print $1'})" = "$(md5sum ${f2} | awk {'print $1'})" ] ; then
@@ -40,6 +37,11 @@ check_md5() {
 
 update_file() {
     local src_file="$1"
+    cmp -s ${tmpdir}/$src_file ${dst}/$src_file || mv ${tmpdir}/$src_file ${dst}/
+}
+
+update_file_md5() {
+    local src_file="$1"
     if ! check_md5 ${tmpdir}/$src_file ${dst}/$src_file; then
 	mv ${tmpdir}/$src_file ${dst}/
     fi
@@ -47,7 +49,7 @@ update_file() {
 
 curl -s ${itdoginfo_intrus} --output ${tmpdir}/intrus_raw
 curl -s ${itdoginfo_extrus} --output ${tmpdir}/extrus_raw
-# combine various lists
+# combine with local include lists
 grep -vE '^#|^$' ${intrus_include} >> ${tmpdir}/intrus_raw
 grep -vE '^#|^$' ${extrus_include} >> ${tmpdir}/extrus_raw
 # exclude and sort
@@ -55,9 +57,13 @@ grep -vE '^#|^$' ${intrus_exclude} > ${tmpdir}/intrus_exclude
 grep -vE '^#|^$' ${extrus_exclude} > ${tmpdir}/extrus_exclude
 grep -vwF -f ${tmpdir}/intrus_exclude ${tmpdir}/intrus_raw | sort -u > ${tmpdir}/intrus_result
 grep -vwF -f ${tmpdir}/extrus_exclude ${tmpdir}/extrus_raw | sort -u > ${tmpdir}/extrus_result
-# RT special
-grep -vE '^#|^$' ${extrus_rt} > ${tmpdir}/${extrus_rt}
-grep -vE '^#|^$' ${extrus_eva} > ${tmpdir}/${extrus_eva}
+
+## Loop over local addon config files
+for file in extrus_domains_inc_rt*.txt; do
+    [ -e "$file" ] || continue
+    grep -vE '^#|^$' ${file} | sort -u > ${tmpdir}/${file}
+done
+
 
 # generate dnsmasq conf files for intrus list
 ## IFS will remove all leading/trailing spaces!!!
@@ -86,31 +92,27 @@ update_file "extrus_nft_dnsmasq.conf"
 update_file "extrus_ipset_dnsmasq.conf"
 
 
-# generate dnsmasq conf files for extrus RT list
-while IFS= read -r line
-do
-  # generate nft list
-  echo "nftset=/${line}/4#inet#fw4#${pbr_table_extrus}" >> ${tmpdir}/extrus_rt_nft_dnsmasq.conf
-  # generate ipset list
-  echo "ipset=/${line}/${pbr_table_extrus}" >> ${tmpdir}/extrus_rt_ipset_dnsmasq.conf
-done < "${tmpdir}/${extrus_rt}"
 
-update_file "extrus_rt_nft_dnsmasq.conf"
-update_file "extrus_rt_ipset_dnsmasq.conf"
+## Loop over local addon config files
+for file in ${tmpdir}/extrus_domains_inc_rt*.txt; do
+    [ -e "$file" ] || continue
+    fname=`basename $file`
+    item=${fname#extrus_domains_inc_}  	# remove prefix "extrus_domains_inc_"
+    item=${item%.txt}      		# remove suffix ".txt"
 
+    #echo "Process $file as item: $item"
 
-# generate dnsmasq conf files for extrus eva list
-while IFS= read -r line
-do
-  # generate nft list
-  echo "nftset=/${line}/4#inet#fw4#${pbr_table_extrus}" >> ${tmpdir}/extrus_eva_nft_dnsmasq.conf
-  # generate ipset list
-  echo "ipset=/${line}/${pbr_table_extrus}" >> ${tmpdir}/extrus_eva_ipset_dnsmasq.conf
-done < "${tmpdir}/${extrus_eva}"
+    while IFS= read -r line
+    do
+    # generate nft list  extrus_nft_dnsmasq.conf
+    echo "nftset=/${line}/4#inet#fw4#${pbr_table_extrus}" >> ${tmpdir}/${item}_extrus_nft_dnsmasq.conf
+    # generate ipset list
+    echo "ipset=/${line}/${pbr_table_extrus}" >> ${tmpdir}/${item}_extrus_ipset_dnsmasq.conf
+    done < "${file}"
 
-update_file "extrus_eva_nft_dnsmasq.conf"
-update_file "extrus_eva_ipset_dnsmasq.conf"
+    update_file ${item}_extrus_nft_dnsmasq.conf
+    update_file ${item}_extrus_ipset_dnsmasq.conf
+done
 
 
-rm ${tmpdir}/intrus_*
-rm ${tmpdir}/extrus_*
+rm -rf ${tmpdir}
